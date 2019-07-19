@@ -4,11 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "libv4l2.h"
-
-
-
-#define VIDEO_DEV "/dev/video0"
+#include "libv4l2/libv4l2.h"
 
 
 
@@ -27,6 +23,12 @@ int main(int argc, char* argv[])
 
     memset(&cap, 0, sizeof(cap));
 
+    if(argc != 2)
+    {
+        printf("Usage:%s </dev/videox>\n", argv[0]);
+        return -1;
+    }
+
     fp = fopen("pic.yuv", "w");
     if(!fp)
     {
@@ -34,7 +36,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    fd = v4l2_open(VIDEO_DEV, O_RDWR);
+    fd = v4l2_open(argv[0], O_RDWR);
     if(fd < 0)
         goto err;
 
