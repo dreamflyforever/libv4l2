@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    fd = v4l2_open(argv[0], O_RDWR);
+    fd = v4l2_open(argv[1], O_RDWR);
     if(fd < 0)
         goto err;
 
