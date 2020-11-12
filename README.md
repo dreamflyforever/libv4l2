@@ -31,3 +31,6 @@
 
 ## 详情请看
 [深入学习Linux摄像头（一）v4l2应用编程](https://blog.csdn.net/weixin_42462202/article/details/96826526#21_Querying_Capabilities_46)
+
+## bash test unit
+./go.sh adb_devices /dev/video
