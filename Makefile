@@ -4,7 +4,7 @@ APP_SRC = libv4l2/libv4l2.c example_capture.c
 APP = capture
 
 all:
-	$(CC) -g -o $(APP) $(APP_SRC)
+	$(CC) -g -o $(APP) $(APP_SRC) -static
 	#$(CC) -g -o $(EXAMPLE2) $(EXAMPLE2_SRC)'
 clean:
 	rm $(APP)
