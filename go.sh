@@ -1,3 +1,7 @@
+#!/usr/bin/bash
+adb root
+adb shell mount -o rw,remount /
+
 adb -s $1 shell mkdir -p /data/$1
 count=0;
 while (($count < 1000000));
