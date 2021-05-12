@@ -5,13 +5,15 @@
 #include <stdlib.h>
 
 #include "libv4l2/libv4l2.h"
+#define FORMAT V4L2_PIX_FMT_YUYV
+//#define FORMAT V4L2_PIX_FMT_MJPEG
 
 int main(int argc, char* argv[])
 {
 	int fd;
 	int ret;
 	char name[100];
-	int width = 640, height = 480;
+	int width = 1280, height = 720;
 	int nr_bufs = 4;
 	int i;
 	struct v4l2_capability cap;
@@ -68,11 +70,11 @@ int main(int argc, char* argv[])
 	if(ret < 0)
 		goto err;
 
-	ret = v4l2_enum_fmt(fd, V4L2_PIX_FMT_YUYV, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+	ret = v4l2_enum_fmt(fd, FORMAT, V4L2_BUF_TYPE_VIDEO_CAPTURE);
 	if(ret < 0)
 		goto err;
 
-	ret = v4l2_s_fmt(fd, &width, &height, V4L2_PIX_FMT_YUYV, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+	ret = v4l2_s_fmt(fd, &width, &height, FORMAT, V4L2_BUF_TYPE_VIDEO_CAPTURE);
 	if(ret < 0)
 		goto err;
 	printf("image width:%d\n", width);
