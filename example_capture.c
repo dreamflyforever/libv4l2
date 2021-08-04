@@ -1,18 +1,22 @@
 #include <stdio.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
+#include "find_usbdevice.h"
 #include "libv4l2/libv4l2.h"
 #define FORMAT V4L2_PIX_FMT_YUYV
+
 //#define FORMAT V4L2_PIX_FMT_MJPEG
 
 int main(int argc, char* argv[])
 {
 	int fd;
 	int ret;
-	char name[100];
+	char name[100] = {0};
 	int width = 1280, height = 720;
 	int nr_bufs = 4;
 	int i;
@@ -22,19 +26,28 @@ int main(int argc, char* argv[])
 	FILE* fp;
 	char str[20] = {0};
 	int t;
+	char dev_name[10] = {0};
+	char DEFAULT_DEV[13] = {0};
 
 	memset(&cap, 0, sizeof(cap));
 
 	if (argc != 2) {
-		printf("Usage:%s </dev/videox>\n", argv[0]);
-		return -1;
+		/*check pid-vid search the device*/
+		#if 1
+        	get_usbdevname("9230","05a3", video, dev_name);
+		snprintf(DEFAULT_DEV, 13, "/dev/%s", dev_name);
+		printf("%s\n", DEFAULT_DEV);
+		#endif
+		printf("Usage:%s </dev/videox>, default: %s\n", argv[0], DEFAULT_DEV);
+		strncpy(&argv[1], DEFAULT_DEV, 13);
+		//return -1;
 	}
 	t = time((time_t*)NULL);
 	sprintf(str, "%d.yuv", t);
-
-	fp = fopen(str, "w");
+	printf("str: %s\n", str);
+	fp = fopen(str, "w+");
 	if (!fp) {
-		printf("failed to open picture\n");
+		perror("failed to open picture");
 		return -1;
 	}
 
