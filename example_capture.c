@@ -36,12 +36,14 @@ int main(int argc, char* argv[])
 		#if 1
         	get_usbdevname("9230","05a3", video, dev_name);
 		snprintf(DEFAULT_DEV, 13, "/dev/%s", dev_name);
-		printf("%s\n", DEFAULT_DEV);
 		#endif
 		printf("Usage:%s </dev/videox>, default: %s\n", argv[0], DEFAULT_DEV);
-		strncpy(&argv[1], DEFAULT_DEV, 13);
+		chdir("/data/");
 		//return -1;
+	} else {
+		strncpy(DEFAULT_DEV, argv[1], 13);
 	}
+	printf("%s\n", DEFAULT_DEV);
 	t = time((time_t*)NULL);
 	sprintf(str, "%d.yuv", t);
 	printf("str: %s\n", str);
@@ -51,7 +53,7 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-	fd = v4l2_open(argv[1], O_RDWR);
+	fd = v4l2_open(DEFAULT_DEV, O_RDWR);
 	if(fd < 0)
 		goto err;
 
