@@ -8,7 +8,7 @@ count=0;
 while (($count < 1000000));
 do adb -s $1 shell /data/capture $2;
 ((count=$count+1));
-adb -s $1 shell mv "*.yuv" /data/$1
+adb -s $1 shell mv "*.jpeg" /data/$1
 adb -s $1 pull /data/$1
 adb -s $1 shell rm /data/$1/* -f
 echo $count

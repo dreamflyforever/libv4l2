@@ -8,9 +8,70 @@
 
 #include "find_usbdevice.h"
 #include "libv4l2/libv4l2.h"
-#define FORMAT V4L2_PIX_FMT_YUYV
+//#define FORMAT V4L2_PIX_FMT_YUYV
 
-//#define FORMAT V4L2_PIX_FMT_MJPEG
+#define FORMAT V4L2_PIX_FMT_MJPEG
+
+int set_exposure(int Handle)
+{
+	int ret;
+	struct v4l2_control ctrl;
+	//得到曝光模式
+	ctrl.id = V4L2_CID_EXPOSURE_AUTO;
+	ret = ioctl(Handle, VIDIOC_G_CTRL, &ctrl);
+	if (ret < 0) {
+		printf("Get exposure auto Type failed\n");
+		return -1;
+	}
+	printf("\nGet Exposure Auto Type:[%d]\n", ctrl.value);
+	// 此时，得到曝光模式。曝光模式分以下几种：
+
+	//设置曝光模式为手动模式
+	ctrl.id = V4L2_CID_EXPOSURE_AUTO; 
+	ctrl.value = V4L2_EXPOSURE_MANUAL;   //手动曝光模式
+	ret = ioctl(Handle, VIDIOC_S_CTRL, &ctrl); 
+	if (ret < 0) {
+		printf("Get exposure auto Type failed\n"); 
+		return -1;
+	}
+
+	ctrl.id = V4L2_CID_EXPOSURE;   //得到曝光档次，A20接受从 -4到4 共9个档次
+	ret = ioctl(Handle, VIDIOC_G_CTRL, &ctrl); 
+	if (ret < 0) 
+	{ printf("Get exposure failed (%d)\n", ret); 
+		return -1;
+	} 
+	printf("\nGet Exposure :[%d]\n", ctrl.value);
+	//设置曝光档次
+	ctrl.id = V4L2_CID_EXPOSURE; 
+	ctrl.value = 3; 
+	ret = ioctl(Handle, VIDIOC_S_CTRL, &ctrl); 
+	if (ret < 0) {
+		printf("Set exposure failed (%d)\n", ret); 
+		return -1;
+	}  
+		
+	ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+	ret = ioctl(Handle, VIDIOC_G_CTRL, &ctrl);
+	if (ret < 0) 
+	{
+		printf("Set exposure failed (%d)\n", ret);
+		//return V4L2_UTILS_SET_EXPSURE_ERR;
+	}
+	printf("\nGet ABS EXP Success:[%d]\n", ctrl.value);
+
+	sleep(1);
+
+	//设置曝光绝对值
+	ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+	ctrl.value = 5;
+	ret = ioctl(Handle, VIDIOC_S_CTRL, &ctrl);
+	if (ret < 0) {
+		printf("Set exposure failed (%d)\n", ret);
+		//return V4L2_UTILS_SET_EXPSURE_ERR;
+	}
+	return ret;
+}
 
 int main(int argc, char* argv[])
 {
@@ -35,6 +96,8 @@ int main(int argc, char* argv[])
 		/*check pid-vid search the device*/
 		#if 1
         	get_usbdevname("9230","05a3", video, dev_name);
+        	//get_usbdevname("636a","0c46", video, dev_name);
+        	//get_usbdevname("636b","0c45", video, dev_name);
 		snprintf(DEFAULT_DEV, 13, "/dev/%s", dev_name);
 		#endif
 		printf("Usage:%s </dev/videox>, default: %s\n", argv[0], DEFAULT_DEV);
@@ -45,7 +108,7 @@ int main(int argc, char* argv[])
 	}
 	printf("%s\n", DEFAULT_DEV);
 	t = time((time_t*)NULL);
-	sprintf(str, "%d.yuv", t);
+	sprintf(str, "%d.jpeg", t);
 	printf("str: %s\n", str);
 	fp = fopen(str, "w+");
 	if (!fp) {
@@ -76,6 +139,7 @@ int main(int argc, char* argv[])
 	if(cap.capabilities & V4L2_CAP_READWRITE)
 		printf("dev support read write\n");
 
+	set_exposure(fd);
 	ret = v4l2_enuminput(fd, 0, name);
 	if(ret < 0)
 		goto err;
