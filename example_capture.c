@@ -6,71 +6,86 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "find_usbdevice.h"
+//#include "find_usbdevice.h"
 #include "libv4l2/libv4l2.h"
 //#define FORMAT V4L2_PIX_FMT_YUYV
 
 #define FORMAT V4L2_PIX_FMT_MJPEG
 
-int set_exposure(int Handle)
+int set_exposure(int Handle, int exposure)
 {
 	int ret;
-	struct v4l2_control ctrl;
-	//得到曝光模式
-	ctrl.id = V4L2_CID_EXPOSURE_AUTO;
-	ret = ioctl(Handle, VIDIOC_G_CTRL, &ctrl);
-	if (ret < 0) {
-		printf("Get exposure auto Type failed\n");
-		return -1;
-	}
-	printf("\nGet Exposure Auto Type:[%d]\n", ctrl.value);
-	// 此时，得到曝光模式。曝光模式分以下几种：
+    struct v4l2_control ctrl;
 
-	//设置曝光模式为手动模式
-	ctrl.id = V4L2_CID_EXPOSURE_AUTO; 
-	ctrl.value = V4L2_EXPOSURE_MANUAL;   //手动曝光模式
-	ret = ioctl(Handle, VIDIOC_S_CTRL, &ctrl); 
-	if (ret < 0) {
-		printf("Get exposure auto Type failed\n"); 
-		return -1;
-	}
+    int try_cnt = 0;
 
-	ctrl.id = V4L2_CID_EXPOSURE;   //得到曝光档次，A20接受从 -4到4 共9个档次
-	ret = ioctl(Handle, VIDIOC_G_CTRL, &ctrl); 
-	if (ret < 0) 
-	{ printf("Get exposure failed (%d)\n", ret); 
-		return -1;
-	} 
-	printf("\nGet Exposure :[%d]\n", ctrl.value);
-	//设置曝光档次
-	ctrl.id = V4L2_CID_EXPOSURE; 
-	ctrl.value = 3; 
-	ret = ioctl(Handle, VIDIOC_S_CTRL, &ctrl); 
-	if (ret < 0) {
-		printf("Set exposure failed (%d)\n", ret); 
-		return -1;
-	}  
-		
-	ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
-	ret = ioctl(Handle, VIDIOC_G_CTRL, &ctrl);
-	if (ret < 0) 
-	{
-		printf("Set exposure failed (%d)\n", ret);
-		//return V4L2_UTILS_SET_EXPSURE_ERR;
-	}
-	printf("\nGet ABS EXP Success:[%d]\n", ctrl.value);
+    while(try_cnt < 5)
+    {
+        ctrl.id = V4L2_CID_EXPOSURE_AUTO;
+        ctrl.value = 0;//V4L2_EXPOSURE_AUTO;
+        
+        ret = ioctl(Handle, VIDIOC_G_CTRL, &ctrl);
+        if (ret < 0)
+        {
+            printf("get exposure mode failed (%d) errno:%d", ret, errno);
+            ctrl.value = V4L2_EXPOSURE_AUTO;
+        }
+        else
+        {
+            printf("get exposure mode successful, mode %d", ctrl.value);
+        }
 
-	sleep(1);
+        if(ctrl.value != V4L2_EXPOSURE_MANUAL)
+        {
+            ctrl.id = V4L2_CID_EXPOSURE_AUTO; 
+            ctrl.value = V4L2_EXPOSURE_MANUAL;
+            ret = ioctl(Handle, VIDIOC_S_CTRL, &ctrl); 
+            if (ret < 0) 
+            {
+                printf("set exposure manual failed (%d), try again %d", ret, try_cnt);
+                //return false;
+            }
+            else
+            {
+                printf("set exposure manual successful");
+                break;
+            }
+        }
+        else
+        {
+            break;
+        }
 
-	//设置曝光绝对值
-	ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
-	ctrl.value = 5;
-	ret = ioctl(Handle, VIDIOC_S_CTRL, &ctrl);
-	if (ret < 0) {
-		printf("Set exposure failed (%d)\n", ret);
-		//return V4L2_UTILS_SET_EXPSURE_ERR;
-	}
-	return ret;
+        try_cnt++;
+        usleep(200000);
+    }
+
+    ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+    ret = ioctl(Handle, VIDIOC_G_CTRL, &ctrl); 
+    if (ret < 0) 
+    {
+        printf("get current abs exposure failed (%d)", ret);
+        return -1;
+    }
+    else
+    {
+        printf("get current abs exposure : %d", ctrl.value);
+    }
+
+    ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+    ctrl.value = exposure;
+    ret = ioctl(Handle, VIDIOC_S_CTRL, &ctrl);
+    if (ret < 0) 
+    {
+        printf("set exposure failed (%d)", ret); 
+        return -1;
+    }
+    else
+    {
+        printf("set exposure %d successful", ctrl.value);
+    }
+
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -95,7 +110,7 @@ int main(int argc, char* argv[])
 	if (argc != 2) {
 		/*check pid-vid search the device*/
 		#if 1
-        	get_usbdevname("9230","05a3", video, dev_name);
+       // 	get_usbdevname("9230","05a3", video, dev_name);
         	//get_usbdevname("636a","0c46", video, dev_name);
         	//get_usbdevname("636b","0c45", video, dev_name);
 		snprintf(DEFAULT_DEV, 13, "/dev/%s", dev_name);
@@ -139,7 +154,7 @@ int main(int argc, char* argv[])
 	if(cap.capabilities & V4L2_CAP_READWRITE)
 		printf("dev support read write\n");
 
-	set_exposure(fd);
+	set_exposure(fd, 80);
 	ret = v4l2_enuminput(fd, 0, name);
 	if(ret < 0)
 		goto err;
