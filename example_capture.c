@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-//#include "find_usbdevice.h"
+#include "find_usbdevice.h"
 #include "libv4l2/libv4l2.h"
 //#define FORMAT V4L2_PIX_FMT_YUYV
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
 	if (argc != 2) {
 		/*check pid-vid search the device*/
 		#if 1
-       // 	get_usbdevname("9230","05a3", video, dev_name);
+        	get_usbdevname("9230","05a3", video, dev_name);
         	//get_usbdevname("636a","0c46", video, dev_name);
         	//get_usbdevname("636b","0c45", video, dev_name);
 		snprintf(DEFAULT_DEV, 13, "/dev/%s", dev_name);
