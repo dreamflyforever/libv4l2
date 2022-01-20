@@ -92,6 +92,7 @@ int main(int argc, char* argv[])
 {
 	int fd;
 	int ret;
+	int num;
 	char name[100] = {0};
 	int width = 1280, height = 720;
 	int nr_bufs = 4;
@@ -110,12 +111,13 @@ int main(int argc, char* argv[])
 	if (argc != 2) {
 		/*check pid-vid search the device*/
 		#if 1
-        	get_usbdevname("9230","05a3", video, dev_name);
+        	get_usbdevname("0b09","1bcf", video, dev_name);
+        	//get_usbdevname("9230","05a3", video, dev_name);
         	//get_usbdevname("636a","0c46", video, dev_name);
         	//get_usbdevname("636b","0c45", video, dev_name);
 		snprintf(DEFAULT_DEV, 13, "/dev/%s", dev_name);
 		#endif
-		printf("Usage:%s </dev/videox>, default: %s\n", argv[0], DEFAULT_DEV);
+		printf("Usage:%s </dev/videox> exposure, default: %s\n", argv[0], DEFAULT_DEV);
 		chdir("/data/");
 		//return -1;
 	} else {
@@ -154,7 +156,8 @@ int main(int argc, char* argv[])
 	if(cap.capabilities & V4L2_CAP_READWRITE)
 		printf("dev support read write\n");
 
-	set_exposure(fd, 80);
+	num = atoi(argv[2]);
+	set_exposure(fd, num);
 	ret = v4l2_enuminput(fd, 0, name);
 	if(ret < 0)
 		goto err;
